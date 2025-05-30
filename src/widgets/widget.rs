@@ -1,47 +1,44 @@
-use std::rc::Rc;
+use std::{error::Error, fmt};
 
-use anyhow::Result;
-use thiserror::Error;
-
-use crate::{root::Environment, util::Drawer};
+use crate::util::{Color, Drawer};
 
 pub trait Widget {
-    fn bind(&mut self, env: Rc<Environment>) -> Result<()>;
+    fn draw(&mut self, drawer: &mut Drawer);
 
-    fn draw(&mut self, drawer: &mut Drawer) -> Result<()>;
-
-    fn data(&mut self) -> Result<&mut WidgetData>;
-}
-
-pub trait WidgetNew {
-    type Settings;
-
-    fn new(env: Option<Rc<Environment>>, settings: Self::Settings) -> Result<Self>
-    where
-        Self: Sized;
-}
-
-#[derive(Debug, Error)]
-pub enum WidgetError {
-    #[error("Invalid widget bounds")]
-    InvalidBounds,
+    fn data(&mut self) -> &mut WidgetData;
 }
 
 #[derive(Debug)]
+pub enum WidgetError {
+    InvalidBounds,
+}
+
+impl Error for WidgetError {}
+
+impl fmt::Display for WidgetError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::InvalidBounds => write!(f, "Invalid widget bounds"),
+        }
+    }
+}
+
 pub struct WidgetData {
     pub position: (usize, usize),
     pub width: usize,
     pub height: usize,
     pub margin: (usize, usize, usize, usize),
+    pub background: Option<Color>,
 }
 
-impl Default for WidgetData {
-    fn default() -> Self {
+impl WidgetData {
+    pub fn new() -> Self {
         WidgetData {
             position: (0, 0),
             width: 0,
             height: 0,
             margin: (0, 0, 0, 0),
+            background: None,
         }
     }
 }

@@ -28,7 +28,6 @@ impl fmt::Display for DrawerError {
     }
 }
 
-#[derive(Debug)]
 pub struct Drawer {
     pool: SlotPool,
     buffer: Option<Buffer>,
@@ -94,18 +93,12 @@ impl Drawer {
         let chunk = canvas.chunks_exact_mut(4).nth(chunk_id);
         if let Some(chunk) = chunk {
             let array: &mut [u8; 4] = chunk.try_into().unwrap();
-            let c = Color::blend_colors(&Color::from_be_bytes(array), &color).to_be_bytes();
-            *array = [c[2], c[1], c[0], c[3]];
+
+            *array = Color::blend_colors(&Color::from_be_bytes(array), &color).to_be_bytes();
         }
     }
 
-    pub fn draw_glyph(
-        &mut self,
-        data: &WidgetData,
-        glyph: &GlyphPosition,
-        font: &Font,
-        mut color: Color,
-    ) {
+    pub fn draw_glyph(&mut self, data: &WidgetData, glyph: &GlyphPosition, font: &Font) {
         let buffer = self.buffer.get_or_insert_with(|| {
             self.pool
                 .create_buffer(
@@ -144,7 +137,7 @@ impl Drawer {
 
         for x in 0..glyph.width {
             for y in 0..glyph.height {
-                color.set_a(bitmap[x + y * glyph.width]);
+                let color = Color::from_rgba(0, 0, 0, bitmap[x + y * glyph.width]);
 
                 let chunk_id = data.position.0
                     + x
